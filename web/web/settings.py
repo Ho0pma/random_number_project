@@ -131,7 +131,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
-SOCIAL_AUTH_GITHUB_REDIRECT_URI = 'https://www.hoopmaserver.ru/auth/complete/github/'
+# SOCIAL_AUTH_GITHUB_REDIRECT_URI = 'https://www.hoopmaserver.ru/auth/complete/github/'
 
 SOCIAL_AUTH_GITHUB_KEY = os.getenv('SOCIAL_AUTH_GITHUB_KEY')
 SOCIAL_AUTH_GITHUB_SECRET = os.getenv('SOCIAL_AUTH_GITHUB_SECRET')
