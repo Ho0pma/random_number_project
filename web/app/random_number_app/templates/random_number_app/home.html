@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Random!{% endblock %}
+
+{% block content %}
+    <div class="welcome_section">
+        <h1>Welcome, {{ user.username }}!</h1>
+    </div>
+
+    <div class="logout_button">
+        <form action="{% url 'users:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="random_number_section">
+        <h1>Random Number: <span id="random-number" class="random-number"></span></h1>
+    </div>
+{% endblock %}
+

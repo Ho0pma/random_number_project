@@ -1,0 +1,126 @@
+version: '3'
+
+
+services:
+  db:
+    image: postgres:latest
+    env_file:
+      - environments/db.env
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d django_db" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_volume:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+
+  celery_worker:
+   working_dir: /code/web
+   build:
+     context: .
+     dockerfile: web/Dockerfile
+   command: celery -A web worker --loglevel=info
+   volumes:
+     - .:/code
+   healthcheck:
+     test: [ "CMD-SHELL", "pgrep -f 'celery worker' || exit 1" ]
+     interval: 5s
+     timeout: 3s
+     retries: 3
+   depends_on:
+     db:
+       condition: service_healthy
+     redis:
+       condition: service_healthy
+
+  celery_beat:
+    working_dir: /code/web
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    command: celery -A web beat --loglevel=info
+    volumes:
+      - .:/code
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f 'celery beat' || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    env_file:
+      - environments/web.env
+    volumes:
+      - ./web:/code
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_healthy
+      celery_beat:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/code
+    healthcheck:
+      test: [ "CMD", "nginx", "-t" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_healthy
+      celery_beat:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+volumes:
+  db_volume:
+  redis_volume:
