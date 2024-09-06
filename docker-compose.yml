@@ -80,7 +80,7 @@ services:
     volumes:
       - ./web:/code
     ports:
-      - "80:80"
+      - "8000:8000"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
       interval: 5s
@@ -96,31 +96,31 @@ services:
       celery_beat:
         condition: service_healthy
 
-#  nginx:
-#    build:
-#      context: .
-#      dockerfile: nginx/Dockerfile
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    volumes:
-#      - ./web:/code
-#    healthcheck:
-#      test: [ "CMD", "nginx", "-t" ]
-#      interval: 5s
-#      timeout: 3s
-#      retries: 3
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#      redis:
-#        condition: service_healthy
-#      celery_worker:
-#        condition: service_healthy
-#      celery_beat:
-#        condition: service_healthy
-#      web:
-#        condition: service_healthy
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./web:/code
+    healthcheck:
+      test: [ "CMD", "nginx", "-t" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_healthy
+      celery_beat:
+        condition: service_healthy
+      web:
+        condition: service_healthy
 
 volumes:
   db_volume:
